@@ -52,7 +52,7 @@ public class Ball extends ShapeDrawable {
 		if (collision) {
 			velocityY = -velocityY;
 		}
-		
+
 		if (this.getBounds().right >= SCREEN_WIDTH) {
 			velocityX = -velocityX;
 		} else if (this.getBounds().left <= 0) {
@@ -64,12 +64,10 @@ public class Ball extends ShapeDrawable {
 		} else if (this.getBounds().top > SCREEN_HEIGHT) {
 			try {
 				Thread.sleep(1000);
-				initCoords(SCREEN_WIDTH,SCREEN_HEIGHT);
+				initCoords(SCREEN_WIDTH, SCREEN_HEIGHT);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			// velocityY = -velocityY;
 		}
 
 		left += velocityX;
@@ -82,8 +80,9 @@ public class Ball extends ShapeDrawable {
 		int pTop = paddle.getBounds().top;
 		int pLeft = paddle.getBounds().left;
 		int pRight = paddle.getBounds().right;
-		
-		if (bottom >= pTop && bottom <= SCREEN_HEIGHT - 5 && left >= pLeft && right <= pRight) {
+
+		if (bottom >= pTop && bottom <= SCREEN_HEIGHT - 5 && left >= pLeft
+				&& right <= pRight) {
 			collision = true;
 		} else
 			collision = false;
