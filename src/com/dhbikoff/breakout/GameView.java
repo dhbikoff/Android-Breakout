@@ -3,43 +3,27 @@ package com.dhbikoff.breakout;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.drawable.ShapeDrawable;
-import android.graphics.drawable.shapes.OvalShape;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 public class GameView extends SurfaceView implements Runnable {
 
+	private boolean touched = false;
+	private float eventX;
 	private SurfaceHolder holder;
 	private Thread gameThread = null;
 	private boolean running = false;
 	private Canvas canvas;
-	private ShapeDrawable circle;
-	private int circleLeft;
-	private int circleRight;
-	private int circleTop;
-	private int circleBottom;
-	private int circleVelocityX = 20;
-	private int circleVelocityY = 20;
-	private int CIRCLE_RADIUS = 10;
-	private int SCREEN_WIDTH;
-	private int SCREEN_HEIGHT;
 	private boolean checkSize = true;
+	private Ball ball;
+	private Paddle paddle;
 
 	public GameView(Context context) {
 		super(context);
 		holder = getHolder();
-		circle = new ShapeDrawable(new OvalShape());
-		circle.getPaint().setColor(Color.CYAN);
-	}
-	
-	private void initCircleCoords() {
-		SCREEN_WIDTH = canvas.getWidth();
-		SCREEN_HEIGHT = canvas.getHeight();
-		circleLeft = (SCREEN_WIDTH/2) - CIRCLE_RADIUS;
-		circleRight = (SCREEN_WIDTH/2) + CIRCLE_RADIUS;
-		circleTop = (SCREEN_HEIGHT/2) - CIRCLE_RADIUS;
-		circleBottom = (SCREEN_HEIGHT/2) + CIRCLE_RADIUS;
+		ball = new Ball();
+		paddle = new Paddle();
 	}
 
 	public void run() {
@@ -50,41 +34,28 @@ public class GameView extends SurfaceView implements Runnable {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			
+
 			if (holder.getSurface().isValid()) {
 				canvas = holder.lockCanvas();
+				canvas.drawColor(Color.BLACK);
+
 				if (checkSize) {
-					initCircleCoords();
+					ball.initCoords(canvas.getWidth(), canvas.getHeight());
+					paddle.initCoords(canvas.getWidth(), canvas.getHeight());
 					checkSize = false;
 				}
-					
-				canvas.drawColor(Color.BLACK);
-				circle.setBounds(circleLeft, circleTop, circleRight,
-						circleBottom);
-				circle.draw(canvas);
-				updateVelocity();
+
+				if (touched) {
+					paddle.movePaddle((int) eventX);
+					touched = false;
+				}
+				
+				paddle.drawPaddle(canvas);
+				ball.drawBall(canvas);
+				ball.checkCollision(paddle);
 				holder.unlockCanvasAndPost(canvas);
 			}
 		}
-	}
-
-	private void updateVelocity() {
-		if (circle.getBounds().right > canvas.getWidth()) {
-			circleVelocityX = -circleVelocityX;
-		} else if (circle.getBounds().left < 0) {
-			circleVelocityX = Math.abs(circleVelocityX);
-		}
-		
-		if (circle.getBounds().top < 0) {
-			circleVelocityY = Math.abs(circleVelocityY);
-		} else if (circle.getBounds().bottom >= canvas.getHeight() - 5) {
-			circleVelocityY = -circleVelocityY;
-		}
-
-		circleLeft += circleVelocityX;
-		circleRight += circleVelocityX;
-		circleTop += circleVelocityY;
-		circleBottom += circleVelocityY;
 	}
 
 	public void pause() {
@@ -97,7 +68,6 @@ public class GameView extends SurfaceView implements Runnable {
 				e.printStackTrace();
 				break;
 			}
-
 		}
 		gameThread = null;
 	}
@@ -106,5 +76,15 @@ public class GameView extends SurfaceView implements Runnable {
 		running = true;
 		gameThread = new Thread(this);
 		gameThread.start();
+	}
+
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+		if (event.getAction() == MotionEvent.ACTION_DOWN
+				|| event.getAction() == MotionEvent.ACTION_MOVE) {
+			eventX = event.getX();
+			touched = true;
+		}
+		return true;
 	}
 }
