@@ -4,9 +4,9 @@ import java.util.Random;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.OvalShape;
-import android.util.Log;
 
 public class Ball extends ShapeDrawable {
 
@@ -19,7 +19,9 @@ public class Ball extends ShapeDrawable {
 	private int radius = 10;
 	private int SCREEN_WIDTH;
 	private int SCREEN_HEIGHT;
-	boolean collision = false;
+	private boolean collision = false;
+	private Rect mPaddle;
+	private Rect ballRect;
 
 	public Ball() {
 		super(new OvalShape());
@@ -49,8 +51,14 @@ public class Ball extends ShapeDrawable {
 
 	public void setVelocity() {
 
-		if (collision) {
+		if (velocityY > 0 && collision) {
 			velocityY = -velocityY;
+			if (velocityX > 0 && ballRect.centerX() < mPaddle.centerX()) {
+				velocityX = -velocityX;
+			} else if (velocityX < 0 && ballRect.centerX() > mPaddle.centerX()) {
+				velocityX = -velocityX;
+			}
+
 		}
 
 		if (this.getBounds().right >= SCREEN_WIDTH) {
@@ -77,14 +85,14 @@ public class Ball extends ShapeDrawable {
 	}
 
 	public void checkCollision(Paddle paddle) {
-		int pTop = paddle.getBounds().top;
-		int pLeft = paddle.getBounds().left;
-		int pRight = paddle.getBounds().right;
-
-		if (bottom >= pTop && bottom <= SCREEN_HEIGHT - 5 && left >= pLeft
-				&& right <= pRight) {
+		mPaddle = paddle.getBounds();
+		ballRect = this.getBounds();
+		
+		if (ballRect.left >= mPaddle.left - 40 && ballRect.right <= mPaddle.right + 40
+				&& ballRect.bottom == mPaddle.top - 20) {
 			collision = true;
-		} else
+		} else {
 			collision = false;
+		}
 	}
 }

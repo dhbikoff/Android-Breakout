@@ -1,3 +1,15 @@
-Breakout clone for Android
+-Breakout clone for Android-
+
+Targeted for the Galaxy Nexus screen size
 
 Still under development...
+
+TODO:
+  -remove "magic numbers" to support multiple devices
+  -blocks collision
+  -fix paddle collision
+  -point scoring
+  -save game
+  -splash screen
+  -sound effects
+  -settings menu

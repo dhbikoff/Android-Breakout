@@ -15,7 +15,7 @@ public class Paddle extends ShapeDrawable {
 	private int paddle_height = 10;
 	private int SCREEN_WIDTH;
 	private int SCREEN_HEIGHT;
-	private int paddle_offset = 40;
+	private int paddle_offset = 92;
 	
 	public Paddle() {
 		super(new RectShape());
