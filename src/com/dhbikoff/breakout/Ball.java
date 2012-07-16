@@ -1,5 +1,6 @@
 package com.dhbikoff.breakout;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 import android.graphics.Canvas;
@@ -19,7 +20,8 @@ public class Ball extends ShapeDrawable {
 	private int radius = 10;
 	private int SCREEN_WIDTH;
 	private int SCREEN_HEIGHT;
-	private boolean collision = false;
+	private boolean paddleCollision = false;
+	private boolean blockCollision = false;
 	private Rect mPaddle;
 	private Rect ballRect;
 
@@ -46,19 +48,28 @@ public class Ball extends ShapeDrawable {
 	public void drawBall(Canvas canvas) {
 		this.setBounds(left, top, right, bottom);
 		this.draw(canvas);
-		this.setVelocity();
 	}
 
 	public void setVelocity() {
 
-		if (velocityY > 0 && collision) {
+		if (blockCollision) {
 			velocityY = -velocityY;
-			if (velocityX > 0 && ballRect.centerX() < mPaddle.centerX()) {
-				velocityX = -velocityX;
-			} else if (velocityX < 0 && ballRect.centerX() > mPaddle.centerX()) {
-				velocityX = -velocityX;
-			}
+			blockCollision = false;
+		}
 
+		if (paddleCollision && velocityY > 0) {
+			int paddleSplit = (mPaddle.right - mPaddle.left) / 4;
+			int ballCenter = ballRect.centerX();
+			if (ballCenter < mPaddle.left + paddleSplit) {
+				velocityX = -30;
+			} else if (ballCenter < mPaddle.left + (paddleSplit * 2)) {
+				velocityX = -20;
+			} else if (ballCenter < mPaddle.centerX() + paddleSplit) {
+				velocityX = 20;
+			} else {
+				velocityX = 30;
+			}
+			velocityY = -velocityY;
 		}
 
 		if (this.getBounds().right >= SCREEN_WIDTH) {
@@ -84,15 +95,67 @@ public class Ball extends ShapeDrawable {
 		bottom += velocityY;
 	}
 
-	public void checkCollision(Paddle paddle) {
+	public void checkPaddleCollision(Paddle paddle) {
 		mPaddle = paddle.getBounds();
 		ballRect = this.getBounds();
-		
-		if (ballRect.left >= mPaddle.left - 40 && ballRect.right <= mPaddle.right + 40
+		if (ballRect.left >= mPaddle.left - 40
+				&& ballRect.right <= mPaddle.right + 40
 				&& ballRect.bottom == mPaddle.top - 20) {
-			collision = true;
+			paddleCollision = true;
 		} else {
-			collision = false;
+			paddleCollision = false;
 		}
+	}
+
+	public int checkBlocksCollision(ArrayList<Block> blocks) {
+		int points = 0;
+		int blockListLength = blocks.size();
+		ballRect = this.getBounds();
+		int ballLeft = ballRect.left + velocityX;
+		int ballRight = ballRect.right + velocityY;
+		int ballTop = ballRect.top + velocityY;
+		int ballBottom = ballRect.bottom + velocityY;
+
+		for (int i = blockListLength - 1; i >= 0; i--) {
+			Rect blockRect = blocks.get(i).getBounds();
+			int color = blocks.get(i).getColor();
+			if (ballLeft >= blockRect.left && ballLeft <= blockRect.right
+					&& ballTop == blockRect.bottom && ballTop >= blockRect.top) {
+				blockCollision = true;
+				blocks.remove(i);
+			} else if (ballRight <= blockRect.right
+					&& ballRight >= blockRect.left
+					&& ballTop <= blockRect.bottom && ballTop >= blockRect.top) {
+				blockCollision = true;
+				blocks.remove(i);
+			} else if (ballLeft >= blockRect.left
+					&& ballLeft <= blockRect.right
+					&& ballBottom <= blockRect.bottom
+					&& ballBottom >= blockRect.top) {
+				blockCollision = true;
+				blocks.remove(i);
+			} else if (ballRight <= blockRect.right
+					&& ballRight >= blockRect.left
+					&& ballBottom <= blockRect.bottom
+					&& ballBottom >= blockRect.top) {
+				blockCollision = true;
+				blocks.remove(i);
+			}
+
+			if (blockCollision) {
+				if (color == Color.LTGRAY)
+					points += 100;
+				else if (color == Color.MAGENTA)
+					points += 200;
+				else if (color == Color.GREEN)
+					points += 300;
+				else if (color == Color.YELLOW)
+					points += 400;
+				else if (color == Color.RED)
+					points += 500;
+				return points;
+			}
+		}
+		return points;
 	}
 }

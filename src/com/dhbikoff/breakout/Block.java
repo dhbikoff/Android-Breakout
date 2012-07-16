@@ -8,15 +8,20 @@ import android.graphics.drawable.shapes.RectShape;
 
 public class Block extends ShapeDrawable {
 	
-	public Block(Rect rect) {
+	private Paint paint;
+	
+	public Block(Rect rect, int color) {
 		super(new RectShape());
 		this.setBounds(rect);
+		paint = new Paint();
+		paint.setColor(color);
 	}
 	
-	public void drawBlock(Canvas canvas, int color) {
-		Paint paint = new Paint();
-		paint.setColor(color);
+	public void drawBlock(Canvas canvas) {
 		canvas.drawRect(this.getBounds(), paint);
 	}
-
+	
+	public int getColor() {
+		return paint.getColor();
+	}
 }

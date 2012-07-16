@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -19,9 +20,14 @@ public class GameView extends SurfaceView implements Runnable {
 	private boolean running = false;
 	private Canvas canvas;
 	private boolean checkSize = true;
+	private boolean newGame = true;
+	private int waitCount = 0;
 	private Ball ball;
 	private Paddle paddle;
 	private ArrayList<Block> blocksList;
+	private int points = 0;
+	private Paint scorePaint;
+	private String score = "SCORE = ";
 
 	public GameView(Context context) {
 		super(context);
@@ -29,6 +35,10 @@ public class GameView extends SurfaceView implements Runnable {
 		ball = new Ball();
 		paddle = new Paddle();
 		blocksList = new ArrayList<Block>();
+		
+		scorePaint = new Paint();
+		scorePaint.setColor(Color.WHITE);
+		scorePaint.setTextSize(25);
 	}
 
 	public void run() {
@@ -43,14 +53,22 @@ public class GameView extends SurfaceView implements Runnable {
 			if (holder.getSurface().isValid()) {
 				canvas = holder.lockCanvas();
 				canvas.drawColor(Color.BLACK);
+				
+				if (blocksList.size() == 0) {
+					checkSize = true;
+					newGame = true;
+					points = 0;
+				}
+					
 
 				if (checkSize) {
 					ball.initCoords(canvas.getWidth(), canvas.getHeight());
 					paddle.initCoords(canvas.getWidth(), canvas.getHeight());
 					initBlocks(canvas);
 					checkSize = false;
+					
 				}
-				
+
 				drawBlocks(canvas);
 
 				if (touched) {
@@ -60,7 +78,23 @@ public class GameView extends SurfaceView implements Runnable {
 
 				paddle.drawPaddle(canvas);
 				ball.drawBall(canvas);
-				ball.checkCollision(paddle);
+				
+				if (newGame) {
+					waitCount = 0;
+					newGame = false;
+				}
+				
+				waitCount++;
+				
+				if (waitCount > 66) {
+					ball.setVelocity();
+					ball.checkPaddleCollision(paddle);
+					points += ball.checkBlocksCollision(blocksList);
+				}
+				
+				String printScore = score + points;
+				canvas.drawText(printScore, 0, 25, scorePaint);
+
 				holder.unlockCanvasAndPost(canvas);
 			}
 		}
@@ -80,31 +114,31 @@ public class GameView extends SurfaceView implements Runnable {
 				Rect r = new Rect();
 				r.set(x_coordinate, y_coordinate, x_coordinate + blockWidth,
 						y_coordinate + blockHeight);
-				
-				Block block = new Block(r);
+
+				int color;
+
+				if (i < 2)
+					color = Color.RED;
+				else if (i < 4)
+					color = Color.YELLOW;
+				else if (i < 6)
+					color = Color.GREEN;
+				else if (i < 8)
+					color = Color.MAGENTA;
+				else
+					color = Color.LTGRAY;
+
+				Block block = new Block(r, color);
+
 				blocksList.add(block);
 			}
 		}
 
 	}
-	
+
 	private void drawBlocks(Canvas canvas) {
 		for (int i = 0; i < blocksList.size(); i++) {
-			
-			int color;
-			
-			if (i < 20)
-				color = Color.RED;
-			else if (i < 40)
-				color = Color.YELLOW;
-			else if (i < 60)
-				color = Color.GREEN;
-			else if (i < 80)
-				color = Color.MAGENTA;
-			else
-				color = Color.LTGRAY;
-				
-			blocksList.get(i).drawBlock(canvas, color);
+			blocksList.get(i).drawBlock(canvas);
 		}
 	}
 
