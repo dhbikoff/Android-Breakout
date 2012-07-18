@@ -11,13 +11,18 @@ import android.graphics.drawable.shapes.OvalShape;
 
 public class Ball extends ShapeDrawable {
 
+	// ball dimensions
 	private int left;
 	private int right;
 	private int top;
 	private int bottom;
-	private int velocityX = 20;
-	private int velocityY = 20;
-	private int radius = 10;
+	private int radius;
+
+	// ball speed
+	private int velocityX;
+	private int velocityY;
+
+	private final int resetBallTimer = 1000;
 	private int SCREEN_WIDTH;
 	private int SCREEN_HEIGHT;
 	private boolean paddleCollision = false;
@@ -31,9 +36,13 @@ public class Ball extends ShapeDrawable {
 	}
 
 	public void initCoords(int width, int height) {
-		Random rnd = new Random();
+		Random rnd = new Random(); // starting x velocity direction
 		SCREEN_WIDTH = width;
 		SCREEN_HEIGHT = height;
+
+		radius = SCREEN_WIDTH / 72;
+		velocityX = velocityY = radius * 2;
+
 		left = (SCREEN_WIDTH / 2) - radius;
 		right = (SCREEN_WIDTH / 2) + radius;
 		top = (SCREEN_HEIGHT / 2) - radius;
@@ -61,13 +70,13 @@ public class Ball extends ShapeDrawable {
 			int paddleSplit = (mPaddle.right - mPaddle.left) / 4;
 			int ballCenter = ballRect.centerX();
 			if (ballCenter < mPaddle.left + paddleSplit) {
-				velocityX = -30;
+				velocityX = -(radius * 3);
 			} else if (ballCenter < mPaddle.left + (paddleSplit * 2)) {
-				velocityX = -20;
+				velocityX = -(radius * 2);
 			} else if (ballCenter < mPaddle.centerX() + paddleSplit) {
-				velocityX = 20;
+				velocityX = radius * 2;
 			} else {
-				velocityX = 30;
+				velocityX = radius * 3;
 			}
 			velocityY = -velocityY;
 		}
@@ -75,6 +84,7 @@ public class Ball extends ShapeDrawable {
 		if (this.getBounds().right >= SCREEN_WIDTH) {
 			velocityX = -velocityX;
 		} else if (this.getBounds().left <= 0) {
+			this.setBounds(0, top, radius * 2, bottom);
 			velocityX = -velocityX;
 		}
 
@@ -82,7 +92,7 @@ public class Ball extends ShapeDrawable {
 			velocityY = -velocityY;
 		} else if (this.getBounds().top > SCREEN_HEIGHT) {
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(resetBallTimer);
 				initCoords(SCREEN_WIDTH, SCREEN_HEIGHT);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -95,22 +105,33 @@ public class Ball extends ShapeDrawable {
 		bottom += velocityY;
 	}
 
-	public void checkPaddleCollision(Paddle paddle) {
+	public boolean checkPaddleCollision(Paddle paddle) {
 		mPaddle = paddle.getBounds();
 		ballRect = this.getBounds();
-		if (ballRect.left >= mPaddle.left - 40
-				&& ballRect.right <= mPaddle.right + 40
-				&& ballRect.bottom == mPaddle.top - 20) {
+
+		/*
+		 * if (ballRect.left >= mPaddle.left - (radius * 2) && ballRect.right <=
+		 * mPaddle.right + (radius * 2) && ballRect.bottom == mPaddle.top -
+		 * mPaddle.height()) { paddleCollision = true; } else { paddleCollision
+		 * = false; }
+		 */
+
+		if (ballRect.left >= mPaddle.left - (radius * 2)
+				&& ballRect.right <= mPaddle.right + (radius * 2)
+				&& ballRect.bottom >= mPaddle.top - (radius * 2)
+				&& ballRect.top < mPaddle.bottom) {
 			paddleCollision = true;
-		} else {
+		} else
 			paddleCollision = false;
-		}
+
+		return paddleCollision;
 	}
 
 	public int checkBlocksCollision(ArrayList<Block> blocks) {
 		int points = 0;
 		int blockListLength = blocks.size();
 		ballRect = this.getBounds();
+
 		int ballLeft = ballRect.left + velocityX;
 		int ballRight = ballRect.right + velocityY;
 		int ballTop = ballRect.top + velocityY;
@@ -119,8 +140,10 @@ public class Ball extends ShapeDrawable {
 		for (int i = blockListLength - 1; i >= 0; i--) {
 			Rect blockRect = blocks.get(i).getBounds();
 			int color = blocks.get(i).getColor();
-			if (ballLeft >= blockRect.left && ballLeft <= blockRect.right
-					&& ballTop == blockRect.bottom && ballTop >= blockRect.top) {
+
+			if (ballLeft >= blockRect.left - (radius * 2)
+					&& ballLeft <= blockRect.right + (radius * 2)
+					&& (ballTop == blockRect.bottom || ballTop == blockRect.top)) {
 				blockCollision = true;
 				blocks.remove(i);
 			} else if (ballRight <= blockRect.right
@@ -143,19 +166,29 @@ public class Ball extends ShapeDrawable {
 			}
 
 			if (blockCollision) {
-				if (color == Color.LTGRAY)
-					points += 100;
-				else if (color == Color.MAGENTA)
-					points += 200;
-				else if (color == Color.GREEN)
-					points += 300;
-				else if (color == Color.YELLOW)
-					points += 400;
-				else if (color == Color.RED)
-					points += 500;
-				return points;
+				return points += getPoints(color);
 			}
 		}
 		return points;
+	}
+
+	private int getPoints(int color) {
+		if (color == Color.LTGRAY)
+			return 100;
+		else if (color == Color.MAGENTA)
+			return 200;
+		else if (color == Color.GREEN)
+			return 300;
+		else if (color == Color.YELLOW)
+			return 400;
+		else if (color == Color.RED)
+			return 500;
+		else {
+			return 0;
+		}
+	}
+
+	public int getVelocityY() {
+		return velocityY;
 	}
 }

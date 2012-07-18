@@ -12,9 +12,12 @@ public class Breakout extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		// fullscreen
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-				WindowManager.LayoutParams.FLAG_FULLSCREEN);		
+				WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		
 		gameView = new GameView(this);
 		setContentView(gameView);
 	}

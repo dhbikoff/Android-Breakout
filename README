@@ -5,11 +5,9 @@ Targeted for the Galaxy Nexus screen size
 Still under development...
 
 TODO:
-  -remove "magic numbers" to support multiple devices
-  -blocks collision
-  -fix paddle collision
-  -point scoring
-  -save game
+  -fix collision algorithms
+  -implement save game
   -splash screen
-  -sound effects
   -settings menu
+  -game music and options
+  -code cleanup
