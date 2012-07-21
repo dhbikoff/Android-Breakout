@@ -1,6 +1,5 @@
 <resources>
-
     <string name="app_name">Breakout</string>
     <string name="title_activity_breakout">Breakout</string>
-
+    <string name="launch">Launch</string>
 </resources>

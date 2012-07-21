@@ -9,7 +9,6 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.media.AudioManager;
 import android.media.SoundPool;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -17,7 +16,7 @@ import android.view.SurfaceView;
 public class GameView extends SurfaceView implements Runnable {
 
 	private final int frameRate = 33;
-	private final int startTimer = 0;
+	private final int startTimer = 66;
 	private boolean touched = false; // touch event
 	private float eventX; // x coordinate for touch event
 	private SurfaceHolder holder;
@@ -90,7 +89,7 @@ public class GameView extends SurfaceView implements Runnable {
 				// touch listener
 				if (touched) {
 					paddle.movePaddle((int) eventX);
-					touched = false;
+					//touched = false;
 				}
 
 				paddle.drawPaddle(canvas);
@@ -101,7 +100,6 @@ public class GameView extends SurfaceView implements Runnable {
 					waitCount = 0;
 					newGame = false;
 				}
-
 				waitCount++;
 
 				// run game if not waiting
@@ -122,14 +120,14 @@ public class GameView extends SurfaceView implements Runnable {
 					}
 					
 				} else {
-					// prompt user to begin
+					// alert user that the game will begin
 					canvas.drawText(getReady, canvas.getWidth() / 2 - 100,
 							(canvas.getHeight() / 2) - 45, getReadyPaint);
 				}
 
 				String printScore = score + points;
 				canvas.drawText(printScore, 0, 25, scorePaint);
-				Log.d("height", canvas.getHeight() + "");
+
 				holder.unlockCanvasAndPost(canvas);
 			}
 		}
@@ -168,7 +166,6 @@ public class GameView extends SurfaceView implements Runnable {
 				blocksList.add(block);
 			}
 		}
-
 	}
 
 	private void drawBlocks(Canvas canvas) {
@@ -188,7 +185,7 @@ public class GameView extends SurfaceView implements Runnable {
 				break;
 			}
 		}
-		gameThread = null;
+		gameThread = null;		
 	}
 
 	public void resume() {

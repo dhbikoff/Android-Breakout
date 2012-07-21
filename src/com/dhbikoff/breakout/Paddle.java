@@ -15,6 +15,7 @@ public class Paddle extends ShapeDrawable {
 	private int paddle_width = 75;
 	private int paddle_height = 10;
 	private int paddle_offset = 92; // bottom screen offset
+	private int paddle_move_offset;
 	
 	private int SCREEN_WIDTH;
 	private int SCREEN_HEIGHT;
@@ -37,6 +38,7 @@ public class Paddle extends ShapeDrawable {
 		top = (SCREEN_HEIGHT - paddle_offset) - paddle_height;
 		bottom = (SCREEN_HEIGHT - paddle_offset) + paddle_height;
 
+		paddle_move_offset = SCREEN_WIDTH / 15;
 	}
 	
 	public void drawPaddle(Canvas canvas) {
@@ -45,9 +47,17 @@ public class Paddle extends ShapeDrawable {
 	}
 
 	public void movePaddle(int x) {
-		left = x - paddle_width;
-		right = x + paddle_width;
-	
+		if (x >= left && x <= right) {
+			left = x - paddle_width;
+			right = x + paddle_width;
+		} else if(x > right) {
+			left += paddle_move_offset;
+			right += paddle_move_offset;
+		} else if (x < left) {
+			left -= paddle_move_offset;
+			right -= paddle_move_offset;
+		}
+		
 		// keep paddle from going off screen left
 		if (left < 0) {
 			left = 0;

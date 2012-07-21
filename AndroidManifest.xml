@@ -15,6 +15,11 @@
             android:name=".Breakout"
             android:screenOrientation="portrait"
             android:label="@string/title_activity_breakout" >
+        </activity>
+        <activity
+            android:name=".Splash"
+            android:screenOrientation="portrait"
+            android:label="@string/title_activity_breakout" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

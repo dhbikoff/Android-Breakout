@@ -22,11 +22,11 @@ public class Ball extends ShapeDrawable {
 	private int velocityX;
 	private int velocityY;
 
-	private final int resetBallTimer = 1000;
+	private final int resetBallTimer = 1000; // when ball hits screen bottom
 	private int SCREEN_WIDTH;
 	private int SCREEN_HEIGHT;
-	private boolean paddleCollision = false;
-	private boolean blockCollision = false;
+	private boolean paddleCollision;
+	private boolean blockCollision;
 	private Rect mPaddle;
 	private Rect ballRect;
 
@@ -37,18 +37,22 @@ public class Ball extends ShapeDrawable {
 
 	public void initCoords(int width, int height) {
 		Random rnd = new Random(); // starting x velocity direction
+		
+		paddleCollision = false;
+		blockCollision = false;
 		SCREEN_WIDTH = width;
 		SCREEN_HEIGHT = height;
-
+		
 		radius = SCREEN_WIDTH / 72;
-		velocityX = velocityY = radius * 2;
+		velocityX = velocityY = radius * 2; // starting velocity
 
+		// ball coordinates
 		left = (SCREEN_WIDTH / 2) - radius;
 		right = (SCREEN_WIDTH / 2) + radius;
 		top = (SCREEN_HEIGHT / 2) - radius;
 		bottom = (SCREEN_HEIGHT / 2) + radius;
 
-		int startingXDirection = rnd.nextInt(2);
+		int startingXDirection = rnd.nextInt(2); // random beginning direction
 		if (startingXDirection > 0) {
 			velocityX = -velocityX;
 		}
@@ -99,6 +103,7 @@ public class Ball extends ShapeDrawable {
 			}
 		}
 
+		// move ball
 		left += velocityX;
 		right += velocityX;
 		top += velocityY;
@@ -108,13 +113,6 @@ public class Ball extends ShapeDrawable {
 	public boolean checkPaddleCollision(Paddle paddle) {
 		mPaddle = paddle.getBounds();
 		ballRect = this.getBounds();
-
-		/*
-		 * if (ballRect.left >= mPaddle.left - (radius * 2) && ballRect.right <=
-		 * mPaddle.right + (radius * 2) && ballRect.bottom == mPaddle.top -
-		 * mPaddle.height()) { paddleCollision = true; } else { paddleCollision
-		 * = false; }
-		 */
 
 		if (ballRect.left >= mPaddle.left - (radius * 2)
 				&& ballRect.right <= mPaddle.right + (radius * 2)
