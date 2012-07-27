@@ -6,10 +6,17 @@
     android:orientation="vertical" >
 
     <Button
-        android:id="@+id/button1"
+        android:id="@+id/newGameButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="launch"
+        android:onClick="newGame"
         android:text="@string/launch" />
+
+    <Button
+        android:id="@+id/contGameButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="contGame"
+        android:text="@string/cont" />
 
 </LinearLayout>

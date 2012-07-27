@@ -1,5 +1,12 @@
 package com.dhbikoff.breakout;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.StreamCorruptedException;
 import java.util.ArrayList;
 
 import android.content.Context;
@@ -15,6 +22,9 @@ import android.view.SurfaceView;
 
 public class GameView extends SurfaceView implements Runnable {
 
+	private int startNewGame; // new game or continue
+	private ObjectOutputStream oos;
+	private final String FILE_NAME = "data";
 	private final int frameRate = 33;
 	private final int startTimer = 66;
 	private boolean touched = false; // touch event
@@ -38,8 +48,9 @@ public class GameView extends SurfaceView implements Runnable {
 	private int paddleSoundId;
 	private int blockSoundId;
 
-	public GameView(Context context) {
+	public GameView(Context context, int launchNewGame) {
 		super(context);
+		startNewGame = launchNewGame;
 		holder = getHolder();
 		ball = new Ball();
 		paddle = new Paddle();
@@ -80,7 +91,11 @@ public class GameView extends SurfaceView implements Runnable {
 				if (checkSize) {
 					ball.initCoords(canvas.getWidth(), canvas.getHeight());
 					paddle.initCoords(canvas.getWidth(), canvas.getHeight());
-					initBlocks(canvas);
+					if (startNewGame == 0) {
+						restoreGameData();
+					} else {
+						initBlocks(canvas);
+					}
 					checkSize = false;
 				}
 
@@ -89,7 +104,6 @@ public class GameView extends SurfaceView implements Runnable {
 				// touch listener
 				if (touched) {
 					paddle.movePaddle((int) eventX);
-					//touched = false;
 				}
 
 				paddle.drawPaddle(canvas);
@@ -105,20 +119,20 @@ public class GameView extends SurfaceView implements Runnable {
 				// run game if not waiting
 				if (waitCount > startTimer) {
 					ball.setVelocity();
-					
+
 					// paddle collision
 					if (ball.checkPaddleCollision(paddle)
 							&& ball.getVelocityY() > 0) {
 						soundPool.play(paddleSoundId, 1, 1, 1, 0, 1);
 					}
-					
+
 					// block collision
 					int oldPoints = points;
 					points += ball.checkBlocksCollision(blocksList);
 					if (oldPoints != points) {
 						soundPool.play(blockSoundId, 1, 1, 1, 0, 1);
 					}
-					
+
 				} else {
 					// alert user that the game will begin
 					canvas.drawText(getReady, canvas.getWidth() / 2 - 100,
@@ -133,10 +147,44 @@ public class GameView extends SurfaceView implements Runnable {
 		}
 	}
 
+	private void restoreBlocks(ArrayList<int[]> arr) {
+		for (int i = 0; i < arr.size(); i++) {
+			Rect r = new Rect();
+			int[] blockNums = arr.get(i);
+			r.set(blockNums[0], blockNums[1], blockNums[2], blockNums[3]);
+			Block b = new Block(r, blockNums[4]);
+			blocksList.add(b);
+		}
+	}
+
+	private void restoreGameData() {
+		try {
+			FileInputStream fis = new FileInputStream(
+					"data/data/com.dhbikoff.breakout/" + FILE_NAME);
+			ObjectInputStream ois = new ObjectInputStream(fis);
+			points = ois.readInt(); // restore player points
+			@SuppressWarnings("unchecked")
+			ArrayList<int[]> arr = (ArrayList<int[]>) ois.readObject();
+			restoreBlocks(arr);
+			ois.close();
+			fis.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (StreamCorruptedException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+
+		startNewGame = 1; // only restore once
+	}
+
 	private void initBlocks(Canvas canvas) {
-		int blockHeight = canvas.getWidth()/36;
-		int spacing = canvas.getWidth()/144;
-		int topOffset = canvas.getHeight()/10;
+		int blockHeight = canvas.getWidth() / 36;
+		int spacing = canvas.getWidth() / 144;
+		int topOffset = canvas.getHeight() / 10;
 		int blockWidth = (canvas.getWidth() / 10) - spacing;
 
 		for (int i = 0; i < 10; i++) {
@@ -174,7 +222,30 @@ public class GameView extends SurfaceView implements Runnable {
 		}
 	}
 
+	private void saveBlocksAndPoints() {
+		ArrayList<int[]> arr = new ArrayList<int[]>();
+
+		for (int i = 0; i < blocksList.size(); i++) {
+			arr.add(blocksList.get(i).toIntArray());
+		}
+
+		try {
+			FileOutputStream fos = new FileOutputStream(
+					"data/data/com.dhbikoff.breakout/" + FILE_NAME);
+			oos = new ObjectOutputStream(fos);
+			oos.writeInt(points);
+			oos.writeObject(arr);
+			oos.close();
+			fos.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 	public void pause() {
+		saveBlocksAndPoints();
 		running = false;
 		while (true) {
 			try {
@@ -185,7 +256,7 @@ public class GameView extends SurfaceView implements Runnable {
 				break;
 			}
 		}
-		gameThread = null;		
+		gameThread = null;
 	}
 
 	public void resume() {
