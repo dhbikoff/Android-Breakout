@@ -14,17 +14,16 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.media.AudioManager;
-import android.media.SoundPool;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 public class GameView extends SurfaceView implements Runnable {
 
+	private boolean soundToggle; // sound on/off
 	private int startNewGame; // new game or continue
 	private ObjectOutputStream oos;
-	private final String FILE_NAME = "data";
+	private final String FILE_PATH = "data/data/com.dhbikoff.breakout/data.dat";
 	private final int frameRate = 33;
 	private final int startTimer = 66;
 	private boolean touched = false; // touch event
@@ -44,15 +43,13 @@ public class GameView extends SurfaceView implements Runnable {
 	private int points = 0;
 	private Paint scorePaint;
 	private String score = "SCORE = ";
-	private SoundPool soundPool;
-	private int paddleSoundId;
-	private int blockSoundId;
 
-	public GameView(Context context, int launchNewGame) {
+	public GameView(Context context, int launchNewGame, boolean sound) {
 		super(context);
-		startNewGame = launchNewGame;
+		startNewGame = launchNewGame; // new game or continue
+		soundToggle = sound;
 		holder = getHolder();
-		ball = new Ball();
+		ball = new Ball(this.getContext(), soundToggle);
 		paddle = new Paddle();
 		blocksList = new ArrayList<Block>();
 
@@ -63,17 +60,13 @@ public class GameView extends SurfaceView implements Runnable {
 		getReadyPaint = new Paint();
 		getReadyPaint.setColor(Color.WHITE);
 		getReadyPaint.setTextSize(45);
-
-		soundPool = new SoundPool(2, AudioManager.STREAM_MUSIC, 0);
-		paddleSoundId = soundPool.load(this.getContext(), R.raw.paddle, 0);
-		blockSoundId = soundPool.load(this.getContext(), R.raw.block, 0);
 	}
 
+	// game engine thread
 	public void run() {
-
 		while (running) {
 			try {
-				Thread.sleep(frameRate); // frame rate
+				Thread.sleep(frameRate); // draw screen frame rate
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -88,27 +81,19 @@ public class GameView extends SurfaceView implements Runnable {
 					newGame = true;
 				}
 
+				// initialize objects (ball/paddle)
 				if (checkSize) {
-					ball.initCoords(canvas.getWidth(), canvas.getHeight());
-					paddle.initCoords(canvas.getWidth(), canvas.getHeight());
-					if (startNewGame == 0) {
-						restoreGameData();
-					} else {
-						initBlocks(canvas);
-					}
+					initObjects(canvas);
 					checkSize = false;
 				}
 
-				drawBlocks(canvas);
-
-				// touch listener
+				// touch listener for paddle
 				if (touched) {
 					paddle.movePaddle((int) eventX);
 				}
 
-				paddle.drawPaddle(canvas);
-				ball.drawBall(canvas);
-
+				drawToCanvas(canvas); // draw all objects on screen
+				
 				// pause screen on new game
 				if (newGame) {
 					waitCount = 0;
@@ -116,34 +101,44 @@ public class GameView extends SurfaceView implements Runnable {
 				}
 				waitCount++;
 
-				// run game if not waiting
-				if (waitCount > startTimer) {
-					ball.setVelocity();
-
-					// paddle collision
-					if (ball.checkPaddleCollision(paddle)
-							&& ball.getVelocityY() > 0) {
-						soundPool.play(paddleSoundId, 1, 1, 1, 0, 1);
-					}
-
-					// block collision
-					int oldPoints = points;
-					points += ball.checkBlocksCollision(blocksList);
-					if (oldPoints != points) {
-						soundPool.play(blockSoundId, 1, 1, 1, 0, 1);
-					}
-
-				} else {
-					// alert user that the game will begin
-					canvas.drawText(getReady, canvas.getWidth() / 2 - 100,
-							(canvas.getHeight() / 2) - 45, getReadyPaint);
-				}
-
+				engine(canvas, waitCount);
+				// draw player score
 				String printScore = score + points;
 				canvas.drawText(printScore, 0, 25, scorePaint);
 
-				holder.unlockCanvasAndPost(canvas);
+				holder.unlockCanvasAndPost(canvas); // release canvas
 			}
+		}
+	}
+	
+	private void drawToCanvas(Canvas canvas) {
+		drawBlocks(canvas);
+		paddle.drawPaddle(canvas);
+		ball.drawBall(canvas);
+	}
+
+	// run game if not waiting
+	private void engine(Canvas canvas, int waitCt) {
+		if (waitCount > startTimer) {
+			ball.setVelocity();
+			// paddle collision
+			ball.checkPaddleCollision(paddle);
+			// block collision and points tally
+			points += ball.checkBlocksCollision(blocksList);
+		} else {
+			// alert user that the game will begin
+			canvas.drawText(getReady, canvas.getWidth() / 2 - 100,
+					(canvas.getHeight() / 2) - 45, getReadyPaint);
+		}
+	}
+
+	private void initObjects(Canvas canvas) {
+		ball.initCoords(canvas.getWidth(), canvas.getHeight());
+		paddle.initCoords(canvas.getWidth(), canvas.getHeight());
+		if (startNewGame == 0) {
+			restoreGameData();
+		} else {
+			initBlocks(canvas);
 		}
 	}
 
@@ -160,7 +155,7 @@ public class GameView extends SurfaceView implements Runnable {
 	private void restoreGameData() {
 		try {
 			FileInputStream fis = new FileInputStream(
-					"data/data/com.dhbikoff.breakout/" + FILE_NAME);
+					FILE_PATH);
 			ObjectInputStream ois = new ObjectInputStream(fis);
 			points = ois.readInt(); // restore player points
 			@SuppressWarnings("unchecked")
@@ -222,7 +217,7 @@ public class GameView extends SurfaceView implements Runnable {
 		}
 	}
 
-	private void saveBlocksAndPoints() {
+	private void saveGameData() {
 		ArrayList<int[]> arr = new ArrayList<int[]>();
 
 		for (int i = 0; i < blocksList.size(); i++) {
@@ -230,8 +225,7 @@ public class GameView extends SurfaceView implements Runnable {
 		}
 
 		try {
-			FileOutputStream fos = new FileOutputStream(
-					"data/data/com.dhbikoff.breakout/" + FILE_NAME);
+			FileOutputStream fos = new FileOutputStream(FILE_PATH);
 			oos = new ObjectOutputStream(fos);
 			oos.writeInt(points);
 			oos.writeObject(arr);
@@ -245,7 +239,7 @@ public class GameView extends SurfaceView implements Runnable {
 	}
 
 	public void pause() {
-		saveBlocksAndPoints();
+		saveGameData();
 		running = false;
 		while (true) {
 			try {

@@ -1,22 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:gravity="center_vertical"
-    android:orientation="vertical" >
-
-    <Button
-        android:id="@+id/newGameButton"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:onClick="newGame"
-        android:text="@string/launch" />
+        android:layout_height="match_parent"
+        android:gravity="center|center_vertical"
+        android:orientation="vertical" >
 
-    <Button
-        android:id="@+id/contGameButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:onClick="contGame"
-        android:text="@string/cont" />
+        <TextView
+            android:id="@+id/hiScoreView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/score"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
 
-</LinearLayout>
+        <Button
+            android:id="@+id/newGameButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="newGame"
+            android:text="@string/launch" />
+
+        <Button
+            android:id="@+id/contGameButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="contGame"
+            android:text="@string/cont" />
+        <ToggleButton
+            android:id="@+id/soundToggleButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/sound"
+            android:onClick="soundToggle"
+            android:textOff="Sound OFF"
+            android:textOn="Sound ON" />
+
+    </LinearLayout>
+    

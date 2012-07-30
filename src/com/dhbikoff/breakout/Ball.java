@@ -3,11 +3,14 @@ package com.dhbikoff.breakout;
 import java.util.ArrayList;
 import java.util.Random;
 
+import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.OvalShape;
+import android.media.AudioManager;
+import android.media.SoundPool;
 
 public class Ball extends ShapeDrawable {
 
@@ -29,12 +32,27 @@ public class Ball extends ShapeDrawable {
 	private boolean blockCollision;
 	private Rect mPaddle;
 	private Rect ballRect;
+	
+	private boolean soundOn;
+	private SoundPool soundPool;
+	private int paddleSoundId;
+	private int blockSoundId;
+	private int bottomSoundId;
 
-	public Ball() {
+	public Ball(Context context, boolean sound) {
 		super(new OvalShape());
 		this.getPaint().setColor(Color.CYAN);
+		soundOn = sound;
+		
+		if (soundOn) {
+			soundPool = new SoundPool(2, AudioManager.STREAM_MUSIC, 0);
+			paddleSoundId = soundPool.load(context, R.raw.paddle, 0);
+			blockSoundId = soundPool.load(context, R.raw.block, 0);
+			bottomSoundId = soundPool.load(context, R.raw.bottom, 0);
+		}
 	}
 
+	// initial ball setup
 	public void initCoords(int width, int height) {
 		Random rnd = new Random(); // starting x velocity direction
 		
@@ -64,7 +82,6 @@ public class Ball extends ShapeDrawable {
 	}
 
 	public void setVelocity() {
-
 		if (blockCollision) {
 			velocityY = -velocityY;
 			blockCollision = false;
@@ -95,6 +112,9 @@ public class Ball extends ShapeDrawable {
 		if (this.getBounds().top <= 0) {
 			velocityY = -velocityY;
 		} else if (this.getBounds().top > SCREEN_HEIGHT) {
+			if (soundOn) {
+				soundPool.play(bottomSoundId, 1, 1, 1, 0, 1);
+			}
 			try {
 				Thread.sleep(resetBallTimer);
 				initCoords(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -119,6 +139,9 @@ public class Ball extends ShapeDrawable {
 				&& ballRect.bottom >= mPaddle.top - (radius * 2)
 				&& ballRect.top < mPaddle.bottom) {
 			paddleCollision = true;
+			if (soundOn && velocityY > 0) {
+				soundPool.play(paddleSoundId, 1, 1, 1, 0, 1);
+			}
 		} else
 			paddleCollision = false;
 
@@ -135,6 +158,7 @@ public class Ball extends ShapeDrawable {
 		int ballTop = ballRect.top + velocityY;
 		int ballBottom = ballRect.bottom + velocityY;
 
+		// check collision; remove block if true
 		for (int i = blockListLength - 1; i >= 0; i--) {
 			Rect blockRect = blocks.get(i).getBounds();
 			int color = blocks.get(i).getColor();
@@ -163,7 +187,11 @@ public class Ball extends ShapeDrawable {
 				blocks.remove(i);
 			}
 
+			// tally points
 			if (blockCollision) {
+				if (soundOn) {
+					soundPool.play(blockSoundId, 1, 1, 1, 0, 1);
+				}
 				return points += getPoints(color);
 			}
 		}

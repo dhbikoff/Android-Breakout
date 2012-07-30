@@ -27,6 +27,8 @@ public class Block extends ShapeDrawable {
 		return paint.getColor();
 	}
 
+	
+	// used to save block info to data file
 	public int[] toIntArray() {
 		int[] arr = {this.getBounds().left,
 				this.getBounds().top, this.getBounds().right,

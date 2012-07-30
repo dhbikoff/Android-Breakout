@@ -15,7 +15,7 @@ public class Paddle extends ShapeDrawable {
 	private int paddle_width;
 	private int paddle_height;
 	private int paddle_offset; // bottom screen offset
-	private int paddle_move_offset;
+	private int paddle_move_offset; // move paddle to touch event speed
 	
 	private int SCREEN_WIDTH;
 	private int SCREEN_HEIGHT;
@@ -31,14 +31,14 @@ public class Paddle extends ShapeDrawable {
 		
 		paddle_width = SCREEN_WIDTH / 10;
 		paddle_height = SCREEN_WIDTH / 72;
-		paddle_offset = SCREEN_HEIGHT / 4;
+		paddle_offset = SCREEN_HEIGHT / 6;
 
 		left = (SCREEN_WIDTH / 2) - paddle_width;
 		right = (SCREEN_WIDTH / 2) + paddle_width;
 		top = (SCREEN_HEIGHT - paddle_offset) - paddle_height;
 		bottom = (SCREEN_HEIGHT - paddle_offset) + paddle_height;
 
-		paddle_move_offset = SCREEN_WIDTH / 5;
+		paddle_move_offset = SCREEN_WIDTH / 15;
 	}
 	
 	public void drawPaddle(Canvas canvas) {
