@@ -62,7 +62,8 @@ public class Ball extends ShapeDrawable {
 		SCREEN_HEIGHT = height;
 		
 		radius = SCREEN_WIDTH / 72;
-		velocityX = velocityY = radius * 2; // starting velocity
+		velocityX = radius; 
+		velocityY = radius * 2;
 
 		// ball coordinates
 		left = (SCREEN_WIDTH / 2) - radius;
@@ -81,7 +82,8 @@ public class Ball extends ShapeDrawable {
 		this.draw(canvas);
 	}
 
-	public void setVelocity() {
+	public int setVelocity() {
+		int bottomHit = 0;
 		if (blockCollision) {
 			velocityY = -velocityY;
 			blockCollision = false;
@@ -112,6 +114,7 @@ public class Ball extends ShapeDrawable {
 		if (this.getBounds().top <= 0) {
 			velocityY = -velocityY;
 		} else if (this.getBounds().top > SCREEN_HEIGHT) {
+			bottomHit = 1;
 			if (soundOn) {
 				soundPool.play(bottomSoundId, 1, 1, 1, 0, 1);
 			}
@@ -128,6 +131,7 @@ public class Ball extends ShapeDrawable {
 		right += velocityX;
 		top += velocityY;
 		bottom += velocityY;
+		return bottomHit;
 	}
 
 	public boolean checkPaddleCollision(Paddle paddle) {
@@ -186,7 +190,7 @@ public class Ball extends ShapeDrawable {
 				blockCollision = true;
 				blocks.remove(i);
 			}
-
+			
 			// tally points
 			if (blockCollision) {
 				if (soundOn) {

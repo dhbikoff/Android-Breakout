@@ -9,6 +9,7 @@ import java.io.StreamCorruptedException;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -60,6 +61,10 @@ public class Splash extends Activity {
 
 		TextView hiScore = (TextView) findViewById(R.id.hiScoreView);
 		hiScore.setText(scoreStr + highScore);
+	}
+
+	public void keyDown(View v) {
+		v.setBackgroundColor(Color.GREEN);
 	}
 
 	// new game button

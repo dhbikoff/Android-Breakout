@@ -1,39 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/hiScoreView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/score"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center|center_vertical"
         android:orientation="vertical" >
 
-        <TextView
-            android:id="@+id/hiScoreView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="@string/score"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
-
         <Button
             android:id="@+id/newGameButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:onClick="newGame"
             android:text="@string/launch" />
-
+
         <Button
             android:id="@+id/contGameButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:onClick="contGame"
-            android:text="@string/cont" />
+            android:text="@string/cont" />
+
         <ToggleButton
             android:id="@+id/soundToggleButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/sound"
             android:onClick="soundToggle"
+            android:text="@string/sound"
             android:textOff="Sound OFF"
             android:textOn="Sound ON" />
 
     </LinearLayout>
-    
+
+</LinearLayout>

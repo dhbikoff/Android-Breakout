@@ -20,6 +20,9 @@ import android.view.SurfaceView;
 
 public class GameView extends SurfaceView implements Runnable {
 
+	private int playerTurns = 3;
+	private Paint turnsPaint;
+	private String playerTurnsText = "TURNS = ";
 	private boolean soundToggle; // sound on/off
 	private int startNewGame; // new game or continue
 	private ObjectOutputStream oos;
@@ -56,8 +59,14 @@ public class GameView extends SurfaceView implements Runnable {
 		scorePaint = new Paint();
 		scorePaint.setColor(Color.WHITE);
 		scorePaint.setTextSize(25);
+		
+		turnsPaint = new Paint();
+		turnsPaint.setTextAlign(Paint.Align.RIGHT);
+		turnsPaint.setColor(Color.WHITE);
+		turnsPaint.setTextSize(25);
 
 		getReadyPaint = new Paint();
+		getReadyPaint.setTextAlign(Paint.Align.CENTER);
 		getReadyPaint.setColor(Color.WHITE);
 		getReadyPaint.setTextSize(45);
 	}
@@ -105,6 +114,9 @@ public class GameView extends SurfaceView implements Runnable {
 				// draw player score
 				String printScore = score + points;
 				canvas.drawText(printScore, 0, 25, scorePaint);
+				
+				String turns = playerTurnsText + playerTurns;
+				canvas.drawText(turns, canvas.getWidth(), 25, turnsPaint);
 
 				holder.unlockCanvasAndPost(canvas); // release canvas
 			}
@@ -120,15 +132,15 @@ public class GameView extends SurfaceView implements Runnable {
 	// run game if not waiting
 	private void engine(Canvas canvas, int waitCt) {
 		if (waitCount > startTimer) {
-			ball.setVelocity();
+			playerTurns -= ball.setVelocity();
 			// paddle collision
 			ball.checkPaddleCollision(paddle);
 			// block collision and points tally
 			points += ball.checkBlocksCollision(blocksList);
 		} else {
 			// alert user that the game will begin
-			canvas.drawText(getReady, canvas.getWidth() / 2 - 100,
-					(canvas.getHeight() / 2) - 45, getReadyPaint);
+			canvas.drawText(getReady, canvas.getWidth() / 2,
+					(canvas.getHeight() / 2) - (ball.getBounds().height()), getReadyPaint);
 		}
 	}
 
