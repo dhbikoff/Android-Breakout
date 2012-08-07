@@ -20,7 +20,10 @@ import android.view.SurfaceView;
 
 public class GameView extends SurfaceView implements Runnable {
 
-	private int playerTurns = 3;
+	private boolean showGameOverBanner = false;
+	private int levelCompleted = 0;
+	private int playerTurns;
+	private int PLAYER_TURNS_NUM = 3;
 	private Paint turnsPaint;
 	private String playerTurnsText = "TURNS = ";
 	private boolean soundToggle; // sound on/off
@@ -50,6 +53,7 @@ public class GameView extends SurfaceView implements Runnable {
 	public GameView(Context context, int launchNewGame, boolean sound) {
 		super(context);
 		startNewGame = launchNewGame; // new game or continue
+		playerTurns = PLAYER_TURNS_NUM;
 		soundToggle = sound;
 		holder = getHolder();
 		ball = new Ball(this.getContext(), soundToggle);
@@ -59,7 +63,7 @@ public class GameView extends SurfaceView implements Runnable {
 		scorePaint = new Paint();
 		scorePaint.setColor(Color.WHITE);
 		scorePaint.setTextSize(25);
-		
+
 		turnsPaint = new Paint();
 		turnsPaint.setTextAlign(Paint.Align.RIGHT);
 		turnsPaint.setColor(Color.WHITE);
@@ -88,12 +92,17 @@ public class GameView extends SurfaceView implements Runnable {
 				if (blocksList.size() == 0) {
 					checkSize = true;
 					newGame = true;
+					levelCompleted++;
 				}
 
 				// initialize objects (ball/paddle)
 				if (checkSize) {
 					initObjects(canvas);
 					checkSize = false;
+					// extra turn for finished level
+					if (levelCompleted > 1) {
+						playerTurns++;
+					}
 				}
 
 				// touch listener for paddle
@@ -102,7 +111,7 @@ public class GameView extends SurfaceView implements Runnable {
 				}
 
 				drawToCanvas(canvas); // draw all objects on screen
-				
+
 				// pause screen on new game
 				if (newGame) {
 					waitCount = 0;
@@ -114,7 +123,7 @@ public class GameView extends SurfaceView implements Runnable {
 				// draw player score
 				String printScore = score + points;
 				canvas.drawText(printScore, 0, 25, scorePaint);
-				
+
 				String turns = playerTurnsText + playerTurns;
 				canvas.drawText(turns, canvas.getWidth(), 25, turnsPaint);
 
@@ -122,7 +131,7 @@ public class GameView extends SurfaceView implements Runnable {
 			}
 		}
 	}
-	
+
 	private void drawToCanvas(Canvas canvas) {
 		drawBlocks(canvas);
 		paddle.drawPaddle(canvas);
@@ -132,19 +141,43 @@ public class GameView extends SurfaceView implements Runnable {
 	// run game if not waiting
 	private void engine(Canvas canvas, int waitCt) {
 		if (waitCount > startTimer) {
+			showGameOverBanner = false;
 			playerTurns -= ball.setVelocity();
+			if (playerTurns < 0) {
+				showGameOverBanner = true;
+				gameOver(canvas);
+				return;
+			}
 			// paddle collision
 			ball.checkPaddleCollision(paddle);
 			// block collision and points tally
 			points += ball.checkBlocksCollision(blocksList);
-		} else {
-			// alert user that the game will begin
+		}
+
+		else {
+			if (showGameOverBanner) {
+				getReadyPaint.setColor(Color.RED);
+				canvas.drawText("GAME OVER!!!", canvas.getWidth() / 2,
+						(canvas.getHeight() / 2) - (ball.getBounds().height())
+								- 50, getReadyPaint);
+			}
+			getReadyPaint.setColor(Color.WHITE);
 			canvas.drawText(getReady, canvas.getWidth() / 2,
-					(canvas.getHeight() / 2) - (ball.getBounds().height()), getReadyPaint);
+					(canvas.getHeight() / 2) - (ball.getBounds().height()),
+					getReadyPaint);
+
 		}
 	}
 
+	private void gameOver(Canvas canvas) {
+		levelCompleted = 0;
+		points = 0;
+		playerTurns = PLAYER_TURNS_NUM;
+		blocksList.clear(); // clear blocks to reset board
+	}
+
 	private void initObjects(Canvas canvas) {
+		touched = false; // reset paddle location
 		ball.initCoords(canvas.getWidth(), canvas.getHeight());
 		paddle.initCoords(canvas.getWidth(), canvas.getHeight());
 		if (startNewGame == 0) {
@@ -166,10 +199,10 @@ public class GameView extends SurfaceView implements Runnable {
 
 	private void restoreGameData() {
 		try {
-			FileInputStream fis = new FileInputStream(
-					FILE_PATH);
+			FileInputStream fis = new FileInputStream(FILE_PATH);
 			ObjectInputStream ois = new ObjectInputStream(fis);
 			points = ois.readInt(); // restore player points
+			playerTurns = ois.readInt(); // restore player turns
 			@SuppressWarnings("unchecked")
 			ArrayList<int[]> arr = (ArrayList<int[]>) ois.readObject();
 			restoreBlocks(arr);
@@ -240,6 +273,7 @@ public class GameView extends SurfaceView implements Runnable {
 			FileOutputStream fos = new FileOutputStream(FILE_PATH);
 			oos = new ObjectOutputStream(fos);
 			oos.writeInt(points);
+			oos.writeInt(playerTurns);
 			oos.writeObject(arr);
 			oos.close();
 			fos.close();
@@ -278,6 +312,7 @@ public class GameView extends SurfaceView implements Runnable {
 			eventX = event.getX();
 			touched = true;
 		}
+
 		return true;
 	}
 }

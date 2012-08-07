@@ -32,7 +32,7 @@ public class Ball extends ShapeDrawable {
 	private boolean blockCollision;
 	private Rect mPaddle;
 	private Rect ballRect;
-	
+
 	private boolean soundOn;
 	private SoundPool soundPool;
 	private int paddleSoundId;
@@ -43,7 +43,7 @@ public class Ball extends ShapeDrawable {
 		super(new OvalShape());
 		this.getPaint().setColor(Color.CYAN);
 		soundOn = sound;
-		
+
 		if (soundOn) {
 			soundPool = new SoundPool(2, AudioManager.STREAM_MUSIC, 0);
 			paddleSoundId = soundPool.load(context, R.raw.paddle, 0);
@@ -55,14 +55,14 @@ public class Ball extends ShapeDrawable {
 	// initial ball setup
 	public void initCoords(int width, int height) {
 		Random rnd = new Random(); // starting x velocity direction
-		
+
 		paddleCollision = false;
 		blockCollision = false;
 		SCREEN_WIDTH = width;
 		SCREEN_HEIGHT = height;
-		
+
 		radius = SCREEN_WIDTH / 72;
-		velocityX = radius; 
+		velocityX = radius;
 		velocityY = radius * 2;
 
 		// ball coordinates
@@ -190,7 +190,7 @@ public class Ball extends ShapeDrawable {
 				blockCollision = true;
 				blocks.remove(i);
 			}
-			
+
 			// tally points
 			if (blockCollision) {
 				if (soundOn) {
