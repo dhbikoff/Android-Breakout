@@ -15,6 +15,12 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
+/**
+ * This is the main Activity class for Breakout. The user can choose to start a
+ * new game or continue a saved game. The user can also toggle sound effects on
+ * or off. Displays the user's high score.
+ * 
+ */
 public class Splash extends Activity {
 
 	private final String FILE_PATH = "data/data/com.dhbikoff.breakout/data.dat";
@@ -27,6 +33,12 @@ public class Splash extends Activity {
 	private final String SOUND_ON_OFF = "SOUND_ON_OFF";
 	private static final String SOUND_PREFS = "SOUND_PREFS";
 
+	/**
+	 * Initializes the Activity. Sets the layout. Acquires media volume control.
+	 * 
+	 * @param savedInstanceState
+	 *            saved data from previous run
+	 * */
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -34,6 +46,12 @@ public class Splash extends Activity {
 		setContentView(R.layout.splash);
 	}
 
+	/**
+	 * Fetches the user's high score from saved data file.
+	 * 
+	 * @return saved player's score. Zero if no data found.
+	 * 
+	 * */
 	private int fetchHighScore() {
 		int points = 0;
 
@@ -41,7 +59,7 @@ public class Splash extends Activity {
 		try {
 			fis = new FileInputStream(FILE_PATH);
 			ObjectInputStream ois = new ObjectInputStream(fis);
-			points = ois.readInt(); // restore player points
+			points = ois.readInt();
 			fis.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -53,6 +71,10 @@ public class Splash extends Activity {
 		return points;
 	}
 
+	/**
+	 * Prints the player's high score to screen.
+	 * 
+	 * */
 	private void showHighScore() {
 		int points = fetchHighScore();
 
@@ -64,7 +86,14 @@ public class Splash extends Activity {
 		hiScore.setText(scoreStr + highScore);
 	}
 
-	// new game button
+	/**
+	 * Callback function for the New Game Button when clicked. Combines the
+	 * sound on or off selection and the newGame value in the intent. Launches
+	 * the Breakout class and signals a new game.
+	 * 
+	 * @param view
+	 *            new game button view
+	 * */
 	public void newGame(View view) {
 		newGame = 1;
 		Intent intent = new Intent(this, Breakout.class);
@@ -73,7 +102,14 @@ public class Splash extends Activity {
 		startActivity(intent);
 	}
 
-	// continue saved game button
+	/**
+	 * Callback function for the Continue Game Button when clicked. Combines the
+	 * sound on or off selection and the newGame value in the intent. Launches
+	 * the Breakout class and signals that the saved game data should be read.
+	 * 
+	 * @param view
+	 *            continue game button view
+	 * */
 	public void contGame(View view) {
 		newGame = 0;
 		Intent intent = new Intent(this, Breakout.class);
@@ -82,26 +118,39 @@ public class Splash extends Activity {
 		startActivity(intent);
 	}
 
+	/**
+	 * Called when this Activity is resumed. Restores the sound on/off button
+	 * state and high score value.
+	 * 
+	 * */
 	@Override
 	protected void onResume() {
 		super.onResume();
-		// Restore preferences
 		SharedPreferences soundSettings = getSharedPreferences(SOUND_PREFS, 0);
 		sound = soundSettings.getBoolean("soundOn", true);
 		SharedPreferences scoreSettings = getSharedPreferences(HIGH_SCORE_PREF,
 				0);
 		highScore = scoreSettings.getInt("highScore", 0);
-
 		ToggleButton soundButton = (ToggleButton) findViewById(R.id.soundToggleButton);
 		soundButton.setChecked(sound);
-
 		showHighScore();
 	}
 
+	/**
+	 * Callback function for when the sound on/off button is clicked. Sets the
+	 * sound boolean in response to the button state.
+	 * 
+	 * @param v
+	 *            sound toggle button
+	 * */
 	public void soundToggle(View v) {
 		sound = ((ToggleButton) v).isChecked();
 	}
 
+	/**
+	 * Called when the system pauses this Activity. Saves the sound button state
+	 * and high score value.
+	 * */
 	@Override
 	protected void onPause() {
 		super.onPause();
@@ -115,7 +164,7 @@ public class Splash extends Activity {
 		scoreEditor.putInt("highScore", highScore);
 		soundEditor.putBoolean("soundOn", sound);
 
-		// Commit the edits!
+		// Commit the edits
 		soundEditor.commit();
 		scoreEditor.commit();
 	}

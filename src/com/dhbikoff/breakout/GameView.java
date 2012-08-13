@@ -18,6 +18,11 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+/**
+ * Creates and draws the graphics for the game. Runs a Thread for animation and
+ * game physics. Saves and restores game data when paused or restored.
+ * 
+ */
 public class GameView extends SurfaceView implements Runnable {
 
 	private boolean showGameOverBanner = false;
@@ -26,21 +31,21 @@ public class GameView extends SurfaceView implements Runnable {
 	private int PLAYER_TURNS_NUM = 3;
 	private Paint turnsPaint;
 	private String playerTurnsText = "TURNS = ";
-	private boolean soundToggle; // sound on/off
-	private int startNewGame; // new game or continue
+	private boolean soundToggle;
+	private int startNewGame;
 	private ObjectOutputStream oos;
 	private final String FILE_PATH = "data/data/com.dhbikoff.breakout/data.dat";
 	private final int frameRate = 33;
 	private final int startTimer = 66;
-	private boolean touched = false; // touch event
-	private float eventX; // x coordinate for touch event
+	private boolean touched = false;
+	private float eventX;
 	private SurfaceHolder holder;
 	private Thread gameThread = null;
-	private boolean running = false; // thread state
+	private boolean running = false;
 	private Canvas canvas;
-	private boolean checkSize = true; // need initial game setup
+	private boolean checkSize = true;
 	private boolean newGame = true;
-	private int waitCount = 0; // count to start ball animation
+	private int waitCount = 0;
 	private Ball ball;
 	private Paddle paddle;
 	private ArrayList<Block> blocksList;
@@ -50,6 +55,11 @@ public class GameView extends SurfaceView implements Runnable {
 	private Paint scorePaint;
 	private String score = "SCORE = ";
 
+	/**
+	 * Constructor. Sets sound state and new game signal depending on the
+	 * incoming intent from the Breakout class. Instantiates the ball, blocks,
+	 * and paddle. Sets up the Paint parameters for drawing text to the screen.
+	 * */
 	public GameView(Context context, int launchNewGame, boolean sound) {
 		super(context);
 		startNewGame = launchNewGame; // new game or continue
@@ -75,11 +85,20 @@ public class GameView extends SurfaceView implements Runnable {
 		getReadyPaint.setTextSize(45);
 	}
 
-	// game engine thread
+	/**
+	 * Runs the game thread. Sets the frame rate for drawing graphics. Acquires
+	 * a canvas for drawing. If no blocks exist, initialize game objects. Moves
+	 * the paddle according to touch events. Checks for collisions as the ball's
+	 * moves. Keeps track of player turns and ends the game when turns run out.
+	 * Awards the player a turn when a level is completed. Draws text to the
+	 * screen showing player score and turns left. Draws text to announce when
+	 * the game begins or ends.
+	 * 
+	 * */
 	public void run() {
 		while (running) {
 			try {
-				Thread.sleep(frameRate); // draw screen frame rate
+				Thread.sleep(frameRate);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -88,14 +107,12 @@ public class GameView extends SurfaceView implements Runnable {
 				canvas = holder.lockCanvas();
 				canvas.drawColor(Color.BLACK);
 
-				// no blocks, must begin/restart game
 				if (blocksList.size() == 0) {
 					checkSize = true;
 					newGame = true;
 					levelCompleted++;
 				}
 
-				// initialize objects (ball/paddle)
 				if (checkSize) {
 					initObjects(canvas);
 					checkSize = false;
@@ -105,12 +122,11 @@ public class GameView extends SurfaceView implements Runnable {
 					}
 				}
 
-				// touch listener for paddle
 				if (touched) {
 					paddle.movePaddle((int) eventX);
 				}
 
-				drawToCanvas(canvas); // draw all objects on screen
+				drawToCanvas(canvas);
 
 				// pause screen on new game
 				if (newGame) {
@@ -120,25 +136,38 @@ public class GameView extends SurfaceView implements Runnable {
 				waitCount++;
 
 				engine(canvas, waitCount);
-				// draw player score
 				String printScore = score + points;
 				canvas.drawText(printScore, 0, 25, scorePaint);
-
 				String turns = playerTurnsText + playerTurns;
 				canvas.drawText(turns, canvas.getWidth(), 25, turnsPaint);
-
 				holder.unlockCanvasAndPost(canvas); // release canvas
 			}
 		}
 	}
 
+	/**
+	 * Draws graphics to the screen.
+	 * 
+	 * @param canvas
+	 *            graphics canvas
+	 * */
 	private void drawToCanvas(Canvas canvas) {
 		drawBlocks(canvas);
 		paddle.drawPaddle(canvas);
 		ball.drawBall(canvas);
 	}
 
-	// run game if not waiting
+	/**
+	 * Pauses the animation until the wait counter is satisfied. Sets the
+	 * velocity and coordinates of the ball. Checks for collisions. Checks if
+	 * the game is over. Draws text to alert the user if the ball restarts or
+	 * the game is over.
+	 * 
+	 * @param canvas
+	 *            graphics canvas
+	 * @param waitCt
+	 *            number of frames to pause the game
+	 * */
 	private void engine(Canvas canvas, int waitCt) {
 		if (waitCount > startTimer) {
 			showGameOverBanner = false;
@@ -169,13 +198,28 @@ public class GameView extends SurfaceView implements Runnable {
 		}
 	}
 
+	/**
+	 * Resets variables to signal a new game. Deletes the remaining blocks list.
+	 * When the run function sees the blocks list is empty, it will initialize a
+	 * new game board.
+	 * 
+	 * @param canvas
+	 *            graphics canvas
+	 * */
 	private void gameOver(Canvas canvas) {
 		levelCompleted = 0;
 		points = 0;
 		playerTurns = PLAYER_TURNS_NUM;
-		blocksList.clear(); // clear blocks to reset board
+		blocksList.clear();
 	}
 
+	/**
+	 * Instantiates graphical objects. Restores game state if an existing game
+	 * is continued.
+	 * 
+	 * @param canvas
+	 *            graphical canvas
+	 * */
 	private void initObjects(Canvas canvas) {
 		touched = false; // reset paddle location
 		ball.initCoords(canvas.getWidth(), canvas.getHeight());
@@ -187,6 +231,15 @@ public class GameView extends SurfaceView implements Runnable {
 		}
 	}
 
+	/**
+	 * Restores a saved ArrayList of blocks. Reads through an ArrayList of integer
+	 * Arrays. Passes the values to construct a block and adds the block to an
+	 * ArrayList.
+	 * 
+	 * @param arr
+	 *            ArrayList of integer arrays containing the coordinates and
+	 *            color of the saved blocks.
+	 * */
 	private void restoreBlocks(ArrayList<int[]> arr) {
 		for (int i = 0; i < arr.size(); i++) {
 			Rect r = new Rect();
@@ -197,6 +250,9 @@ public class GameView extends SurfaceView implements Runnable {
 		}
 	}
 
+	/**
+	 * Opens a saved game file and reads in data to restore saved game state.
+	 * */
 	private void restoreGameData() {
 		try {
 			FileInputStream fis = new FileInputStream(FILE_PATH);
@@ -205,7 +261,7 @@ public class GameView extends SurfaceView implements Runnable {
 			playerTurns = ois.readInt(); // restore player turns
 			@SuppressWarnings("unchecked")
 			ArrayList<int[]> arr = (ArrayList<int[]>) ois.readObject();
-			restoreBlocks(arr);
+			restoreBlocks(arr); // restore blocks
 			ois.close();
 			fis.close();
 		} catch (FileNotFoundException e) {
@@ -221,6 +277,14 @@ public class GameView extends SurfaceView implements Runnable {
 		startNewGame = 1; // only restore once
 	}
 
+	/**
+	 * Initializes blocks. Measures the width and height of the canvas for the
+	 * dimensions and coordinates of the blocks. Sets the color depending on the
+	 * block's row. Adds the block to an ArrayList.
+	 * 
+	 * @param canvas
+	 *            graphics canvas
+	 * */
 	private void initBlocks(Canvas canvas) {
 		int blockHeight = canvas.getWidth() / 36;
 		int spacing = canvas.getWidth() / 144;
@@ -256,12 +320,22 @@ public class GameView extends SurfaceView implements Runnable {
 		}
 	}
 
+	/**
+	 * Draws blocks to screen
+	 * 
+	 * @param canvas
+	 *            graphical canvas
+	 * */
 	private void drawBlocks(Canvas canvas) {
 		for (int i = 0; i < blocksList.size(); i++) {
 			blocksList.get(i).drawBlock(canvas);
 		}
 	}
 
+	/**
+	 * Saves game state. Reads block color and coordinates into an ArrayList.
+	 * Saves blocks, player points, and player turns into a data file.
+	 * */
 	private void saveGameData() {
 		ArrayList<int[]> arr = new ArrayList<int[]>();
 
@@ -284,6 +358,9 @@ public class GameView extends SurfaceView implements Runnable {
 		}
 	}
 
+	/**
+	 * Saves game data and destroys Thread.
+	 * */
 	public void pause() {
 		saveGameData();
 		running = false;
@@ -299,12 +376,20 @@ public class GameView extends SurfaceView implements Runnable {
 		gameThread = null;
 	}
 
+	/**
+	 * Resumes the game. Starts a new game Thread. 
+	 * */
 	public void resume() {
 		running = true;
 		gameThread = new Thread(this);
 		gameThread.start();
 	}
 
+	/**
+	 * Overridden Touch event listener. Reads screen touches to move the paddle.
+	 * 
+	 * @return true if there has been a touch event
+	 * */
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		if (event.getAction() == MotionEvent.ACTION_DOWN
@@ -312,7 +397,6 @@ public class GameView extends SurfaceView implements Runnable {
 			eventX = event.getX();
 			touched = true;
 		}
-
-		return true;
+		return touched;
 	}
 }

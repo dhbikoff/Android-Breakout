@@ -12,6 +12,11 @@ import android.graphics.drawable.shapes.OvalShape;
 import android.media.AudioManager;
 import android.media.SoundPool;
 
+/**
+ * Represents a game ball. Responsible for drawing the ball, updating the ball's
+ * position, collision checking, sound events, and point scoring.
+ * 
+ * */
 public class Ball extends ShapeDrawable {
 
 	// ball dimensions
@@ -25,7 +30,9 @@ public class Ball extends ShapeDrawable {
 	private int velocityX;
 	private int velocityY;
 
-	private final int resetBallTimer = 1000; // when ball hits screen bottom
+	// timer when ball hits screen bottom
+	private final int resetBallTimer = 1000;
+
 	private int SCREEN_WIDTH;
 	private int SCREEN_HEIGHT;
 	private boolean paddleCollision;
@@ -39,6 +46,14 @@ public class Ball extends ShapeDrawable {
 	private int blockSoundId;
 	private int bottomSoundId;
 
+	/**
+	 * Constructor. Sets the Paint and sound parameters.
+	 * 
+	 * @param context
+	 *            Android context
+	 * @param sound
+	 *            sound on or off
+	 * */
 	public Ball(Context context, boolean sound) {
 		super(new OvalShape());
 		this.getPaint().setColor(Color.CYAN);
@@ -52,7 +67,16 @@ public class Ball extends ShapeDrawable {
 		}
 	}
 
-	// initial ball setup
+	/**
+	 * Initializes ball parameters. Calculates the ball's dimensions according
+	 * to the screen's width and height. Sets a starting velocity. Randomly
+	 * chooses whether the ball moves right or left at start.
+	 * 
+	 * @param width
+	 *            screen width
+	 * @param height
+	 *            screen height
+	 * */
 	public void initCoords(int width, int height) {
 		Random rnd = new Random(); // starting x velocity direction
 
@@ -77,18 +101,34 @@ public class Ball extends ShapeDrawable {
 		}
 	}
 
+	/**
+	 * Draws ball to canvas.
+	 * 
+	 * @param canvas
+	 *            graphical canvas
+	 * */
 	public void drawBall(Canvas canvas) {
 		this.setBounds(left, top, right, bottom);
 		this.draw(canvas);
 	}
 
+	/**
+	 * Updates the ball's coordinates. If there is a collision, the direction of
+	 * the ball's velocity is changed. Returns an integer depending on whether
+	 * the ball collides with the bottom of the screen. The return value is used
+	 * to decrement player turns.
+	 * 
+	 * @return number to decrement player turns
+	 * */
 	public int setVelocity() {
 		int bottomHit = 0;
+
 		if (blockCollision) {
 			velocityY = -velocityY;
-			blockCollision = false;
+			blockCollision = false; // reset
 		}
 
+		// paddle collision
 		if (paddleCollision && velocityY > 0) {
 			int paddleSplit = (mPaddle.right - mPaddle.left) / 4;
 			int ballCenter = ballRect.centerX();
@@ -104,6 +144,7 @@ public class Ball extends ShapeDrawable {
 			velocityY = -velocityY;
 		}
 
+		// side walls collision
 		if (this.getBounds().right >= SCREEN_WIDTH) {
 			velocityX = -velocityX;
 		} else if (this.getBounds().left <= 0) {
@@ -111,16 +152,17 @@ public class Ball extends ShapeDrawable {
 			velocityX = -velocityX;
 		}
 
+		// screen top/bottom collisions
 		if (this.getBounds().top <= 0) {
 			velocityY = -velocityY;
 		} else if (this.getBounds().top > SCREEN_HEIGHT) {
-			bottomHit = 1;
+			bottomHit = 1; // lose a turn
 			if (soundOn) {
 				soundPool.play(bottomSoundId, 1, 1, 1, 0, 1);
 			}
 			try {
 				Thread.sleep(resetBallTimer);
-				initCoords(SCREEN_WIDTH, SCREEN_HEIGHT);
+				initCoords(SCREEN_WIDTH, SCREEN_HEIGHT); // reset ball
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -131,9 +173,20 @@ public class Ball extends ShapeDrawable {
 		right += velocityX;
 		top += velocityY;
 		bottom += velocityY;
+
 		return bottomHit;
 	}
 
+	/**
+	 * Checks if the ball has collided with the paddle. Plays a sound effect if
+	 * there is a collision and sound is enabled.
+	 * 
+	 * @param paddle
+	 *            paddle object
+	 * 
+	 * @return true if there is a collision
+	 * 
+	 * */
 	public boolean checkPaddleCollision(Paddle paddle) {
 		mPaddle = paddle.getBounds();
 		ballRect = this.getBounds();
@@ -152,6 +205,17 @@ public class Ball extends ShapeDrawable {
 		return paddleCollision;
 	}
 
+	/**
+	 * Checks for a ball collision with each block in an ArrayList. If there is
+	 * a collision, the point value of the block is added to a points total. If
+	 * sound is enabled, a sound effect will play on collision. If there is a
+	 * collision, blockCollision is set to true for the setVelocity method.
+	 * 
+	 * @param blocks
+	 *            ArrayList of block objects
+	 * 
+	 * @return points total from blocks
+	 * */
 	public int checkBlocksCollision(ArrayList<Block> blocks) {
 		int points = 0;
 		int blockListLength = blocks.size();
@@ -191,7 +255,6 @@ public class Ball extends ShapeDrawable {
 				blocks.remove(i);
 			}
 
-			// tally points
 			if (blockCollision) {
 				if (soundOn) {
 					soundPool.play(blockSoundId, 1, 1, 1, 0, 1);
@@ -202,22 +265,35 @@ public class Ball extends ShapeDrawable {
 		return points;
 	}
 
+	/**
+	 * Returns the point value of a block based on color.
+	 * 
+	 * @param color
+	 *            block color
+	 * 
+	 * @return point value of block
+	 * */
 	private int getPoints(int color) {
+		int points = 0;
 		if (color == Color.LTGRAY)
-			return 100;
+			points = 100;
 		else if (color == Color.MAGENTA)
-			return 200;
+			points = 200;
 		else if (color == Color.GREEN)
-			return 300;
+			points = 300;
 		else if (color == Color.YELLOW)
-			return 400;
+			points = 400;
 		else if (color == Color.RED)
-			return 500;
-		else {
-			return 0;
-		}
+			points = 500;
+
+		return points;
 	}
 
+	/**
+	 * Returns the current Y velocity value of the ball.
+	 * 
+	 * @return current Y velocity of the ball
+	 * */
 	public int getVelocityY() {
 		return velocityY;
 	}
