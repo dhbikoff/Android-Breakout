@@ -10,6 +10,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -18,7 +19,7 @@ import android.widget.ToggleButton;
 /**
  * This is the main Activity class for Breakout. The user can choose to start a
  * new game or continue a saved game. The user can also toggle sound effects on
- * or off. Displays the user's high score.
+ * or off. Displays the user's high score. Contains a web link to the source code.
  * 
  */
 public class Splash extends Activity {
@@ -145,6 +146,20 @@ public class Splash extends Activity {
 	 * */
 	public void soundToggle(View v) {
 		sound = ((ToggleButton) v).isChecked();
+	}
+
+	/**
+	 * Opens a web browser and loads the github source page.
+	 * 
+	 * @param v
+	 *            source button
+	 * */
+	public void showSource(View v) {
+		Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_VIEW);
+        intent.addCategory(Intent.CATEGORY_BROWSABLE);
+        intent.setData(Uri.parse("http://github.com/dhbikoff/Android-Breakout"));
+        startActivity(intent);
 	}
 
 	/**

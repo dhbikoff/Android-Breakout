@@ -42,6 +42,13 @@
             android:textOff="Sound OFF"
             android:textOn="Sound ON" />
 
+        <Button
+            android:id="@+id/sourceTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="showSource"
+            android:background="@android:color/transparent"
+            android:text="@string/source" />
     </LinearLayout>
 
 </LinearLayout>

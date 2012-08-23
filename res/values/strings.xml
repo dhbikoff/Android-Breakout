@@ -5,4 +5,5 @@
     <string name="cont">Continue Game</string>
     <string name="sound">Sound</string>
     <string name="score"></string>
+    <string name="source"><u>View Source On GitHub</u></string>
 </resources>
