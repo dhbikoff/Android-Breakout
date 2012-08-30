@@ -297,4 +297,14 @@ public class Ball extends ShapeDrawable {
 	public int getVelocityY() {
 		return velocityY;
 	}
+	
+	/**
+	 * Releases sound assets.
+	 * */
+	public void close() {
+		if (soundOn) {
+			soundPool.release();
+			soundPool = null;
+		}
+	}
 }

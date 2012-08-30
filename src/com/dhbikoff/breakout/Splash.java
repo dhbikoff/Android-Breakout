@@ -36,6 +36,7 @@ public class Splash extends Activity {
 
 	/**
 	 * Initializes the Activity. Sets the layout. Acquires media volume control.
+	 * {@inheritDoc}
 	 * 
 	 * @param savedInstanceState
 	 *            saved data from previous run
@@ -122,7 +123,7 @@ public class Splash extends Activity {
 	/**
 	 * Called when this Activity is resumed. Restores the sound on/off button
 	 * state and high score value.
-	 * 
+	 * {@inheritDoc}
 	 * */
 	@Override
 	protected void onResume() {
@@ -165,6 +166,7 @@ public class Splash extends Activity {
 	/**
 	 * Called when the system pauses this Activity. Saves the sound button state
 	 * and high score value.
+	 * {@inheritDoc}
 	 * */
 	@Override
 	protected void onPause() {

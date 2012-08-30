@@ -59,6 +59,13 @@ public class GameView extends SurfaceView implements Runnable {
 	 * Constructor. Sets sound state and new game signal depending on the
 	 * incoming intent from the Breakout class. Instantiates the ball, blocks,
 	 * and paddle. Sets up the Paint parameters for drawing text to the screen.
+	 * 
+	 * @param context
+	 *            Android Context
+	 * @param launchNewGame
+	 *            start new game or load save game
+	 * @param sound
+	 *            sound on/off
 	 * */
 	public GameView(Context context, int launchNewGame, boolean sound) {
 		super(context);
@@ -90,9 +97,9 @@ public class GameView extends SurfaceView implements Runnable {
 	 * a canvas for drawing. If no blocks exist, initialize game objects. Moves
 	 * the paddle according to touch events. Checks for collisions as the ball's
 	 * moves. Keeps track of player turns and ends the game when turns run out.
-	 * Awards the player a turn when a level is completed. Draws text to the
-	 * screen showing player score and turns left. Draws text to announce when
-	 * the game begins or ends.
+	 * Awards the player an extra turn when a level is completed. Draws text to
+	 * the screen showing player score and turns remaining. Draws text to
+	 * announce when the game begins or ends.
 	 * 
 	 * */
 	public void run() {
@@ -214,8 +221,8 @@ public class GameView extends SurfaceView implements Runnable {
 	}
 
 	/**
-	 * Instantiates graphical objects. Restores game state if an existing game
-	 * is continued.
+	 * Initializes graphical objects. Restores game state if an existing game is
+	 * continued.
 	 * 
 	 * @param canvas
 	 *            graphical canvas
@@ -232,9 +239,9 @@ public class GameView extends SurfaceView implements Runnable {
 	}
 
 	/**
-	 * Restores a saved ArrayList of blocks. Reads through an ArrayList of integer
-	 * Arrays. Passes the values to construct a block and adds the block to an
-	 * ArrayList.
+	 * Restores a saved ArrayList of blocks. Reads through an ArrayList of
+	 * integer Arrays. Passes the values to construct a block and adds the block
+	 * to an ArrayList.
 	 * 
 	 * @param arr
 	 *            ArrayList of integer arrays containing the coordinates and
@@ -374,10 +381,11 @@ public class GameView extends SurfaceView implements Runnable {
 			}
 		}
 		gameThread = null;
+		ball.close();
 	}
 
 	/**
-	 * Resumes the game. Starts a new game Thread. 
+	 * Resumes the game. Starts a new game Thread.
 	 * */
 	public void resume() {
 		running = true;
@@ -387,8 +395,12 @@ public class GameView extends SurfaceView implements Runnable {
 
 	/**
 	 * Overridden Touch event listener. Reads screen touches to move the paddle.
+	 * {@inheritDoc}
 	 * 
-	 * @return true if there has been a touch event
+	 * @param event
+	 *            screen touch event
+	 * 
+	 * @return true
 	 * */
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {

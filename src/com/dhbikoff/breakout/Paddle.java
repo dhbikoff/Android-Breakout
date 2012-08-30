@@ -25,7 +25,8 @@ public class Paddle extends ShapeDrawable {
 	private int SCREEN_HEIGHT;
 
 	/**
-	 * Constructor
+	 * Constructor. Calls the constructor of the super class and sets color value.
+	 * 
 	 * */
 	public Paddle() {
 		super(new RectShape());
